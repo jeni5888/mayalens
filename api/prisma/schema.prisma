@@ -47,6 +47,7 @@ model Team {
   id          String   @id @default(cuid())
   name        String
   description String?
+  plan        TeamPlan @default(FREE)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -145,6 +146,14 @@ enum UserRole {
   SYSTEM_ADMIN
   TEAM_OWNER
   TEAM_MEMBER
+  ADMIN // Legacy compatibility
+}
+
+enum TeamPlan {
+  FREE
+  STARTER
+  PRO
+  ENTERPRISE
 }
 
 enum ImageGenerationStatus {
@@ -152,4 +161,27 @@ enum ImageGenerationStatus {
   PROCESSING
   COMPLETED
   FAILED
+}
+
+enum GenerationStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum GenerationStyle {
+  REALISTIC
+  ARTISTIC
+  CARTOON
+  ABSTRACT
+  VINTAGE
+  MODERN
+}
+
+enum ImageFormat {
+  JPEG
+  PNG
+  WEBP
+  SVG
 }

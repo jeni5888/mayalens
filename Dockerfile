@@ -30,12 +30,6 @@ COPY . .
 # Build the application
 RUN npm run build:all
 
-# Remove devDependencies to reduce image size
-WORKDIR /app
-RUN npm prune --production
-WORKDIR /app/api
-RUN npm prune --production
-
 # Go back to root directory
 WORKDIR /app
 

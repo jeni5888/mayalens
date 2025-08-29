@@ -127,6 +127,13 @@ export const updateUserRoleSchema = Joi.object({
     })
 });
 
+export const toggleUserStatusSchema = Joi.object({
+  isActive: Joi.boolean().required().messages({
+    'boolean.base': 'isActive must be a boolean value',
+    'any.required': 'isActive is required'
+  })
+});
+
 // Team validation schemas
 export const createTeamSchema = Joi.object({
   name: Joi.string()

@@ -32,16 +32,21 @@ export interface TokenPair {
 export interface LoginRequest {
   email: string;
   password: string;
+  rememberMe?: boolean;
 }
 
 export interface RegisterRequest {
   email: string;
   password: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  role?: string;
+  teamName?: string;
 }
 
 export interface AuthResponse {
-  user: Omit<User, 'passwordHash'>;
+  success: boolean;
+  user: Omit<User, 'password'>;
   tokens: TokenPair;
 }
 
