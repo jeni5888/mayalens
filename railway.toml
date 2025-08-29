@@ -1,0 +1,44 @@
+[build]
+builder = "nixpacks"
+watchPatterns = ["src/**", "api/**", "package.json"]
+
+[deploy]
+startCommand = "npm run start"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
+
+[environments.production]
+variables = {
+  NODE_ENV = "production",
+  PORT = "${{ PORT }}",
+  DATABASE_URL = "${{ DATABASE_URL }}",
+  JWT_SECRET = "${{ JWT_SECRET }}",
+  FRONTEND_URL = "${{ FRONTEND_URL }}",
+  CORS_ORIGIN = "${{ CORS_ORIGIN }}"
+}
+
+[environments.staging]
+variables = {
+  NODE_ENV = "staging",
+  PORT = "${{ PORT }}",
+  DATABASE_URL = "${{ DATABASE_URL }}",
+  JWT_SECRET = "${{ JWT_SECRET }}",
+  FRONTEND_URL = "${{ FRONTEND_URL }}",
+  CORS_ORIGIN = "${{ CORS_ORIGIN }}"
+}
+
+# Health check configuration
+[healthcheck]
+path = "/api/health"
+interval = 30
+timeout = 10
+retries = 3
+
+# Resource limits
+[resources]
+memory = 512
+cpu = 0.5
+
+# Networking
+[networking]
+serviceDomain = "mayalens"
