@@ -11,12 +11,12 @@ COPY package*.json ./
 COPY api/package*.json ./api/
 COPY api/prisma ./api/prisma/
 
-# Install root dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Install root dependencies (including devDependencies for building)
+RUN npm ci && npm cache clean --force
 
-# Install API dependencies
+# Install API dependencies (including devDependencies for building)
 WORKDIR /app/api
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci && npm cache clean --force
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -29,6 +29,15 @@ COPY . .
 
 # Build the application
 RUN npm run build:all
+
+# Remove devDependencies to reduce image size
+WORKDIR /app
+RUN npm prune --production
+WORKDIR /app/api
+RUN npm prune --production
+
+# Go back to root directory
+WORKDIR /app
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
