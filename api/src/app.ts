@@ -156,8 +156,11 @@ export const startServer = async (): Promise<void> => {
       logger.info(`🚀 MayaLens API Server running on port ${PORT}`);
       logger.info(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
       logger.info(`🌐 CORS enabled for: ${corsOptions.origin}`);
-      logger.info(`📊 Health check: http://localhost:${PORT}/api/health`);
-      logger.info(`📚 API docs: http://localhost:${PORT}/api`);
+      logger.info(`📊 Health check: /api/health`);
+      logger.info(`📚 API docs: /api`);
+      if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+        logger.info(`🌍 Public URL: https://${process.env.RAILWAY_PUBLIC_DOMAIN}`);
+      }
     });
 
     // Handle server errors

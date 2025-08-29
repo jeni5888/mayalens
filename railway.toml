@@ -1,44 +1,28 @@
 [build]
-builder = "nixpacks"
-watchPatterns = ["src/**", "api/**", "package.json"]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "npm run start"
+startCommand = "npm start"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
 
 [environments.production]
-variables = {
-  NODE_ENV = "production",
-  PORT = "${{ PORT }}",
-  DATABASE_URL = "${{ DATABASE_URL }}",
-  JWT_SECRET = "${{ JWT_SECRET }}",
-  FRONTEND_URL = "${{ FRONTEND_URL }}",
-  CORS_ORIGIN = "${{ CORS_ORIGIN }}"
-}
-
-[environments.staging]
-variables = {
-  NODE_ENV = "staging",
-  PORT = "${{ PORT }}",
-  DATABASE_URL = "${{ DATABASE_URL }}",
-  JWT_SECRET = "${{ JWT_SECRET }}",
-  FRONTEND_URL = "${{ FRONTEND_URL }}",
-  CORS_ORIGIN = "${{ CORS_ORIGIN }}"
-}
+[environments.production.variables]
+NODE_ENV = "production"
+RAILWAY_ENVIRONMENT = "production"
 
 # Health check configuration
-[healthcheck]
+[environments.production.healthcheck]
 path = "/api/health"
 interval = 30
 timeout = 10
-retries = 3
 
-# Resource limits
-[resources]
+# Resource configuration
+[environments.production.resources]
 memory = 512
 cpu = 0.5
 
-# Networking
-[networking]
-serviceDomain = "mayalens"
+# Port configuration - Railway will automatically set PORT
+[environments.production.networking]
+port = "$PORT"
