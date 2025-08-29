@@ -4,15 +4,25 @@ FROM node:20-alpine AS base
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy root package files
 COPY package*.json ./
-COPY prisma ./prisma/
 
-# Install dependencies
+# Copy API package files
+COPY api/package*.json ./api/
+COPY api/prisma ./api/prisma/
+
+# Install root dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Install API dependencies
+WORKDIR /app/api
 RUN npm ci --only=production && npm cache clean --force
 
 # Generate Prisma client
 RUN npx prisma generate
+
+# Go back to root directory
+WORKDIR /app
 
 # Copy source code
 COPY . .
