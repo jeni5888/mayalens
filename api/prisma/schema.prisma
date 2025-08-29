@@ -1,0 +1,155 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model with role-based access control
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  password          String
+  firstName         String
+  lastName          String
+  role              UserRole @default(TEAM_MEMBER)
+  isEmailVerified   Boolean  @default(false)
+  emailVerifiedAt   DateTime?
+  isActive          Boolean  @default(true)
+  lastLoginAt       DateTime?
+  passwordChangedAt DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Team relationship
+  teamId String?
+  team   Team?   @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
+  // Owned teams (for team owners)
+  ownedTeams Team[] @relation("TeamOwner")
+
+  // Products created by this user
+  createdProducts Product[]
+
+  // Image generations by this user
+  imageGenerations ImageGeneration[]
+
+  @@map("users")
+}
+
+// Team model for multi-tenancy
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Team owner
+  ownerId String
+  owner   User   @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  // Team members
+  members User[]
+
+  // Team products
+  products Product[]
+
+  @@map("teams")
+}
+
+// Product model
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  category    String?
+  price       Decimal? @db.Decimal(10, 2)
+  sku         String?  @unique
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Team relationship
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  // Creator relationship
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  // Product images
+  images ProductImage[]
+
+  // Image generations for this product
+  imageGenerations ImageGeneration[]
+
+  @@unique([name, teamId]) // Unique product name per team
+  @@map("products")
+}
+
+// Product image model
+model ProductImage {
+  id        String   @id @default(cuid())
+  filename  String
+  originalName String?
+  mimeType  String
+  size      Int
+  width     Int?
+  height    Int?
+  url       String
+  publicId  String? // For Cloudinary
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Product relationship
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+// Image generation model for AI-generated images
+model ImageGeneration {
+  id          String              @id @default(cuid())
+  prompt      String
+  style       String?
+  dimensions  String? // e.g., "1024x1024"
+  status      ImageGenerationStatus @default(PENDING)
+  resultUrl   String?
+  errorMessage String?
+  metadata    Json? // Store additional generation parameters
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  // User relationship
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Optional product relationship
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@map("image_generations")
+}
+
+// Enums
+enum UserRole {
+  SYSTEM_ADMIN
+  TEAM_OWNER
+  TEAM_MEMBER
+}
+
+enum ImageGenerationStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}

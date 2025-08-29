@@ -1,0 +1,156 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  avatar       String?
+  role         UserRole @default(USER)
+  teamId       String?  @map("team_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  team             Team?             @relation(fields: [teamId], references: [id])
+  products         Product[]
+  imageGenerations ImageGeneration[]
+
+  @@index([email])
+  @@index([teamId])
+  @@map("users")
+}
+
+// Team model
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  plan      TeamPlan @default(FREE)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  members User[]
+
+  @@index([plan])
+  @@map("teams")
+}
+
+// Product model
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  category    String
+  tags        String[] @default([])
+  ownerId     String   @map("owner_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  owner            User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  images           ProductImage[]
+  imageGenerations ImageGeneration[]
+
+  @@index([ownerId])
+  @@index([category])
+  @@index([createdAt(sort: Desc)])
+  @@map("products")
+}
+
+// Product Image model
+model ProductImage {
+  id        String   @id @default(cuid())
+  url       String
+  publicId  String   @map("public_id")
+  fileName  String   @map("file_name")
+  fileSize  Int      @map("file_size")
+  width     Int
+  height    Int
+  format    String
+  isMain    Boolean  @default(false) @map("is_main")
+  productId String   @map("product_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([isMain])
+  @@map("product_images")
+}
+
+// Image Generation model
+model ImageGeneration {
+  id              String           @id @default(cuid())
+  prompt          String
+  style           GenerationStyle
+  format          ImageFormat
+  status          GenerationStatus @default(PROCESSING)
+  resultUrl       String?          @map("result_url")
+  resultPublicId  String?          @map("result_public_id")
+  geminiCost      Decimal?         @map("gemini_cost") @db.Decimal(10, 4)
+  processingTime  Int?             @map("processing_time")
+  errorMessage    String?          @map("error_message")
+  userId          String           @map("user_id")
+  productId       String           @map("product_id")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([productId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("image_generations")
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum TeamPlan {
+  FREE
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum GenerationStyle {
+  PROFESSIONAL_STUDIO
+  LIFESTYLE_SCENE
+  MINIMALIST_CLEAN
+  LUXURY_PREMIUM
+  OUTDOOR_NATURAL
+  CUSTOM
+}
+
+enum ImageFormat {
+  SQUARE_1_1
+  STORY_9_16
+  LANDSCAPE_16_9
+  PORTRAIT_4_5
+  ORIGINAL
+}
+
+enum GenerationStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
